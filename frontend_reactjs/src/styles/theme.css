@@ -1,0 +1,94 @@
+:root {
+  --crt-green: #21ff7e;
+  --crt-green-dim: rgba(33, 255, 126, 0.8);
+  --crt-black: #0b0f0c;
+  --crt-border: rgba(33, 255, 126, 0.4);
+  --crt-shadow: 0 0 8px rgba(33, 255, 126, 0.35), 0 0 18px rgba(33, 255, 126, 0.2);
+  --crt-pixel: 2px;
+  --surface: #0f1512;
+  --text: var(--crt-green);
+  --text-dim: rgba(33, 255, 126, 0.75);
+  --error: #ef4444;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+html, body, #root {
+  height: 100%;
+  background: var(--crt-black);
+  color: var(--text);
+  font-family: "Press Start 2P", system-ui, -apple-system, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+}
+
+a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px dashed var(--crt-green);
+  outline-offset: 2px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: linear-gradient(to bottom, rgba(33,255,126,0.08), rgba(33,255,126,0.02));
+  border-bottom: var(--crt-pixel) solid var(--crt-border);
+  box-shadow: var(--crt-shadow);
+}
+
+.nav a {
+  margin-left: 16px;
+  padding: 8px 10px;
+  border: var(--crt-pixel) solid var(--crt-border);
+  box-shadow: var(--crt-shadow);
+  color: var(--text);
+}
+
+.nav a[aria-current="page"] {
+  background: rgba(33,255,126,0.08);
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 12px;
+  border: var(--crt-pixel) solid var(--crt-border);
+  background: rgba(33,255,126,0.06);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--crt-shadow);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.section {
+  margin-top: 18px;
+  border: var(--crt-pixel) solid var(--crt-border);
+  padding: 14px;
+  background: rgba(33,255,126,0.03);
+  box-shadow: var(--crt-shadow);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

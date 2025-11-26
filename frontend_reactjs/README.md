@@ -1,3 +1,24 @@
+# RetroSpace APOD Viewer (React)
+
+Environment:
+- Create a `.env` file in this folder with:
+  REACT_APP_BACKEND_URL=http://localhost:3001/api
+
+Scripts:
+- npm start — starts dev server
+- npm test — runs tests
+- npm run build — production build
+
+Notes:
+- The frontend calls:
+  GET ${REACT_APP_BACKEND_URL}/apod/today
+  GET ${REACT_APP_BACKEND_URL}/apod?date=YYYY-MM-DD
+- Theme: Retro CRT (green-on-black, scanlines, glow, pixel borders)
+
+Below is the original template README for reference.
+
+---
+
 # Lightweight React Template for KAVIA
 
 This project provides a minimal React template with a clean, modern UI and minimal dependencies.
