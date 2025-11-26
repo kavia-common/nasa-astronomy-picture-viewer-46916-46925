@@ -1,52 +1,67 @@
-const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+const RAW_BASE = process.env.REACT_APP_BACKEND_URL;
 
 /**
- * Build a URL with query parameters safely.
- * The backend serves under /api; README instructs REACT_APP_BACKEND_URL to include /api.
- * Example: http://localhost:3001/api
- * If the backend is mounted directly at /apod (without /api), you may set REACT_APP_BACKEND_URL=http://localhost:3001
- * and the below normalization will still build correct URLs.
- * @param {string} path path relative to BASE_URL (should not include /api again)
- * @param {Record<string, string|number|boolean|undefined>} params
- * @returns {string}
+ * Normalize the configured backend base URL to ensure it includes a single /api suffix,
+ * and never has a trailing slash. This prevents 404s from path mismatch and double-prefixes.
+ *
+ * PUBLIC_INTERFACE
+ * resolveApiBase
+ *   Returns the normalized API base.
  */
-function buildUrl(path, params = {}) {
-  if (!BASE_URL) {
-    throw new Error("REACT_APP_BACKEND_URL is not set. Please set it in .env (e.g., http://localhost:3001/api).");
+function resolveApiBase(rawBase) {
+  /**
+   * Normalize base URL:
+   * - Require REACT_APP_BACKEND_URL
+   * - Strip trailing slashes
+   * - Ensure it ends with /api (append if missing)
+   */
+  if (!rawBase) {
+    throw new Error(
+      "REACT_APP_BACKEND_URL is not set. Please set it in .env (e.g., http://localhost:3001/api)."
+    );
+  }
+  // Trim whitespace
+  let base = String(rawBase).trim();
+
+  // Remove trailing slash(es)
+  base = base.replace(/\/+$/, "");
+
+  // If base already ends with /api, keep as is; otherwise append /api
+  if (!/\/api$/i.test(base)) {
+    base = `${base}/api`;
   }
 
-  // Normalize to avoid accidental double slashes and ensure correct /api handling:
-  // - If BASE_URL already ends with /api and caller passes "/api/...", strip the extra "/api".
-  // - If BASE_URL does NOT end with /api but caller passes "/api/...", keep it.
-  const baseUrlObj = new URL(BASE_URL, window.location.origin);
-  const baseEndsWithApi = baseUrlObj.pathname.replace(/\/+$/, "") === "/api";
-  const incomingStartsWithApi = path.startsWith("/api/") || path === "/api";
+  return base;
+}
 
-  let normalizedPath = path;
-  if (baseEndsWithApi && incomingStartsWithApi) {
-    normalizedPath = path.replace(/^\/api/, ""); // drop leading /api to avoid /api/api/...
-  }
+/**
+ * Build a URL to the APOD endpoint (/apod) under the normalized API base.
+ * Also attaches provided query parameters.
+ *
+ * PUBLIC_INTERFACE
+ * buildApodUrl
+ */
+function buildApodUrl(params = {}) {
+  const apiBase = resolveApiBase(RAW_BASE);
 
-  // Ensure leading slash for URL constructor relative path handling
-  if (!normalizedPath.startsWith("/")) normalizedPath = `/${normalizedPath}`;
+  // Construct final URL: {apiBase}/apod (strip any trailing slash from base for safety)
+  const full = `${apiBase.replace(/\/+$/, "")}/apod`;
 
-  const url = new URL(normalizedPath, baseUrlObj.toString());
+  // Log resolved URL for debugging
+  console.info("[apiClient] Resolved APOD URL:", full, params);
 
+  const url = new URL(full, window.location.origin);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") {
       url.searchParams.set(k, String(v));
     }
   });
-
   return url.toString();
 }
 
 /**
  * Handle JSON fetch with errors normalized and a timeout.
  * Adds attempt to parse JSON error body for better error visibility in UI.
- * @param {string} url
- * @param {number} timeoutMs
- * @returns {Promise<any>}
  */
 async function getJson(url, timeoutMs = 15000) {
   const controller = new AbortController();
@@ -96,23 +111,16 @@ async function getJson(url, timeoutMs = 15000) {
 
 // PUBLIC_INTERFACE
 export async function fetchApodToday() {
-  /**
-   * Fetch today's APOD from backend using /apod (backend defaults to today).
-   * This builds either:
-   *  - {REACT_APP_BACKEND_URL}/apod when REACT_APP_BACKEND_URL ends with /api
-   *  - {REACT_APP_BACKEND_URL}/api/apod when REACT_APP_BACKEND_URL does not end with /api and caller uses "/api/apod"
-   */
-  const url = buildUrl("/apod");
+  /** Fetch today's APOD from backend using /api/apod (backend defaults to today). */
+  const url = buildApodUrl();
   return getJson(url);
 }
 
 // PUBLIC_INTERFACE
 export async function fetchApodByDate(date) {
-  /**
-   * Fetch APOD for a date (YYYY-MM-DD) using apod_date query parameter.
-   */
+  /** Fetch APOD for a date (YYYY-MM-DD) using apod_date query parameter. */
   if (!date) throw new Error("date is required (YYYY-MM-DD)");
   const isoDate = String(date).slice(0, 10);
-  const url = buildUrl("/apod", { apod_date: isoDate });
+  const url = buildApodUrl({ apod_date: isoDate });
   return getJson(url);
 }

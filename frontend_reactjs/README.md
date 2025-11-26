@@ -3,11 +3,11 @@
 Environment:
 - Create a `.env` file in this folder with:
   REACT_APP_BACKEND_URL=http://localhost:3001/api
-  # Note: Include the /api suffix. The frontend will call:
-  #   GET ${REACT_APP_BACKEND_URL}/apod           -> maps to backend /api/apod (today by default)
-  #   GET ${REACT_APP_BACKEND_URL}/apod?apod_date=YYYY-MM-DD
-  # If your backend does NOT use the /api prefix (i.e., it serves /apod directly),
-  # you may set REACT_APP_BACKEND_URL=http://localhost:3001 and the client will still build correct URLs.
+  # IMPORTANT:
+  # - REACT_APP_BACKEND_URL MUST include the /api suffix (e.g., https://your-host:3001/api).
+  # - The client force-normalizes the base to include a single /api and strips trailing slashes.
+  #   Final requests will always target: ${REACT_APP_BACKEND_URL.replace(/\/$/, "")}/apod
+  #   with optional query ?apod_date=YYYY-MM-DD.
   # Ensure CORS is enabled on the backend for http://localhost:3000
 
 API usage:
