@@ -10,12 +10,18 @@ const apodCache = new Map();
  * Normalize APOD response to a stable shape the UI expects.
  */
 function normalize(apod) {
+  // Prefer standard url, but gracefully fall back to hdurl for image rendering if url is absent.
+  const mediaType = apod.media_type || "image";
+  const primaryUrl = apod.url || apod.hdurl || null;
+
   return {
     date: apod.date,
     title: apod.title,
     explanation: apod.explanation,
-    media_type: apod.media_type || "image",
-    url: apod.url,
+    media_type: mediaType,
+    // Use resolved primaryUrl for components that render <img src={apod.url} />
+    url: primaryUrl,
+    // Keep hdurl for explicit HD link if available
     hdurl: apod.hdurl || null,
     copyright: apod.copyright || null,
     service_version: apod.service_version || null,
