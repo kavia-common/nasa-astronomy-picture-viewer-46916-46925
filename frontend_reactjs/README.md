@@ -8,6 +8,10 @@ Environment:
   #   GET ${REACT_APP_BACKEND_URL}/apod?apod_date=YYYY-MM-DD
   # Ensure CORS is enabled on the backend for http://localhost:3000
 
+API usage:
+- Today: GET ${REACT_APP_BACKEND_URL}/apod (no query). The backend defaults to today's APOD.
+- Archive: GET ${REACT_APP_BACKEND_URL}/apod?apod_date=YYYY-MM-DD (e.g., 2024-01-10).
+
 Scripts:
 - npm start — starts dev server
 - npm test — runs Jest/RTL tests (non-watch)

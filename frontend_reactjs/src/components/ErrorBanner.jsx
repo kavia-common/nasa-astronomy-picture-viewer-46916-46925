@@ -12,7 +12,7 @@ export default function ErrorBanner({ error, onRetry }) {
       <div className="caption" style={{ color: "rgba(239,68,68,0.9)" }}>
         Error: {msg}
       </div>
-      {/* For debugging responses that include additional context beyond message */}
+      {/* Show secondary line for additional details if error.toString differs */}
       {String(error) !== msg && (
         <div className="caption" style={{ marginTop: 6 }}>
           Details: {String(error)}

@@ -23,7 +23,7 @@ export default function Archive() {
 
       {loading && <Loader message={date ? `Fetching APOD for ${date}...` : "Fetching today's APOD..."} />}
       <ErrorBanner error={error} onRetry={refetch} />
-      {!loading && !error && data && (
+      {!loading && !error && data?.url && (
         <div className="grid">
           <ApodCard apod={data} onOpen={setOpen} />
         </div>

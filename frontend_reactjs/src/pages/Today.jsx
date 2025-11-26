@@ -19,7 +19,7 @@ export default function Today() {
 
       {loading && <Loader message="Fetching today's APOD..." />}
       <ErrorBanner error={error} onRetry={refetch} />
-      {!loading && !error && data && (
+      {!loading && !error && data?.url && (
         <ApodCard apod={data} onOpen={setOpen} />
       )}
 

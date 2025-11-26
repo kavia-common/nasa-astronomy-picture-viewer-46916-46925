@@ -8,10 +8,9 @@ const apodCache = new Map();
 
 /**
  * Normalize APOD response to a stable shape the UI expects.
+ * Ensures result.url = result.url || result.hdurl.
  */
 function normalize(apod) {
-  // Prefer standard url, but gracefully fall back to hdurl for image rendering if url is absent.
-  // This ensures ApodCard/ApodModal can always display an image when available.
   const mediaType = apod.media_type || "image";
   const primaryUrl = apod.url || apod.hdurl || null;
 
@@ -20,9 +19,7 @@ function normalize(apod) {
     title: apod.title,
     explanation: apod.explanation,
     media_type: mediaType,
-    // Display URL used across components: url || hdurl
     url: primaryUrl,
-    // Keep hdurl for explicit HD link if available
     hdurl: apod.hdurl || null,
     copyright: apod.copyright || null,
     service_version: apod.service_version || null,
@@ -39,7 +36,7 @@ function keyFromDate(dateStr) {
 // PUBLIC_INTERFACE
 export function useApod(dateStr) {
   /**
-   * React hook for fetching APOD data.
+   * React hook for fetching APOD data using backend /apod with optional apod_date.
    * - dateStr: undefined for today, or "YYYY-MM-DD" for a specific date.
    * Returns { data, loading, error, refetch } with cache-first logic.
    */
@@ -59,32 +56,41 @@ export function useApod(dateStr) {
   }, []);
 
   async function load() {
-    setError(null);
     const k = keyFromDate(dateStr);
+    setError(null);
+
     const cached = apodCache.get(k);
     if (cached) {
-      setData(cached);
-      setLoading(false);
+      console.debug("[useApod] cache hit for", k);
+      if (mounted.current) {
+        setData(cached);
+        setLoading(false);
+      }
       return;
     }
-    setLoading(true);
+
+    console.debug("[useApod] request start", { dateStr, key: k });
+    if (mounted.current) setLoading(true);
+
     try {
       const apod = dateStr ? await fetchApodByDate(dateStr) : await fetchApodToday();
       const norm = normalize(apod);
       apodCache.set(k, norm);
       if (mounted.current) {
         setData(norm);
+        console.debug("[useApod] request success", { dateStr, key: k, title: norm?.title });
       }
     } catch (e) {
-      // On any error, clear any stale data and surface a friendly message
       if (mounted.current) {
-        setData(null);
         const err = e instanceof Error ? e : new Error("Unknown error");
+        setData(null);
         setError(err);
+        console.debug("[useApod] request error", { dateStr, key: k, error: String(err) });
       }
     } finally {
       if (mounted.current) {
         setLoading(false);
+        console.debug("[useApod] request end", { dateStr, key: k });
       }
     }
   }
