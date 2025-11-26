@@ -10,13 +10,20 @@ Environment:
 
 Scripts:
 - npm start — starts dev server
-- npm test — runs tests
+- npm test — runs Jest/RTL tests (non-watch)
 - npm run build — production build
+- npm run e2e:install — installs Playwright browsers
+- npm run e2e — runs Playwright tests headless
+- npm run e2e:headed — runs Playwright tests in headed mode
+
+Docker:
+- Build: docker build --build-arg REACT_APP_BACKEND_URL=http://localhost:3001/api -t retrospace-frontend .
+- Run: docker run -p 3000:80 retrospace-frontend
 
 Notes:
 - The frontend calls:
-  GET ${REACT_APP_BACKEND_URL}/apod/today
-  GET ${REACT_APP_BACKEND_URL}/apod?date=YYYY-MM-DD
+  GET ${REACT_APP_BACKEND_URL}/apod
+  GET ${REACT_APP_BACKEND_URL}/apod?apod_date=YYYY-MM-DD
 - Theme: Retro CRT (green-on-black, scanlines, glow, pixel borders)
 
 Below is the original template README for reference.
