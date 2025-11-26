@@ -11,6 +11,7 @@ const apodCache = new Map();
  */
 function normalize(apod) {
   // Prefer standard url, but gracefully fall back to hdurl for image rendering if url is absent.
+  // This ensures ApodCard/ApodModal can always display an image when available.
   const mediaType = apod.media_type || "image";
   const primaryUrl = apod.url || apod.hdurl || null;
 
@@ -19,7 +20,7 @@ function normalize(apod) {
     title: apod.title,
     explanation: apod.explanation,
     media_type: mediaType,
-    // Use resolved primaryUrl for components that render <img src={apod.url} />
+    // Display URL used across components: url || hdurl
     url: primaryUrl,
     // Keep hdurl for explicit HD link if available
     hdurl: apod.hdurl || null,

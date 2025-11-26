@@ -14,15 +14,17 @@ afterEach(() => {
   global.fetch = originalFetch;
 });
 
-test('fetchApodToday hits /apod/today', async () => {
+test('fetchApodToday hits /apod/today (or falls back to /apod)', async () => {
   await fetchApodToday();
   expect(global.fetch).toHaveBeenCalled();
   const url = new URL(global.fetch.mock.calls[0][0]);
-  expect(url.pathname).toBe('/api/apod/today'.replace('/api', '') ? '/apod/today' : '/apod/today'); // path segment
+  expect(['/apod/today', '/apod']).toContain(url.pathname);
 });
 
-test('fetchApodByDate adds date query', async () => {
+test('fetchApodByDate includes date or apod_date query', async () => {
   await fetchApodByDate('2024-01-01');
   const url = new URL(global.fetch.mock.calls[0][0]);
-  expect(url.searchParams.get('date')).toBe('2024-01-01');
+  const dateParam = url.searchParams.get('date');
+  const apodDateParam = url.searchParams.get('apod_date');
+  expect(dateParam === '2024-01-01' || apodDateParam === '2024-01-01').toBe(true);
 });

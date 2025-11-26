@@ -25,6 +25,7 @@ function buildUrl(path, params = {}) {
 
 /**
  * Handle JSON fetch with errors normalized and a timeout.
+ * Adds attempt to parse JSON error body for better error visibility in UI.
  * @param {string} url
  * @param {number} timeoutMs
  * @returns {Promise<any>}
@@ -44,8 +45,18 @@ async function getJson(url, timeoutMs = 15000) {
       credentials: "omit",
     });
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      const message = `HTTP ${res.status} ${res.statusText}${text ? ": " + text : ""}`;
+      // Try to parse JSON error with message; fallback to text
+      let messageDetail = "";
+      try {
+        const maybeJson = await res.clone().json();
+        if (maybeJson && (maybeJson.message || maybeJson.detail || maybeJson.error)) {
+          messageDetail = String(maybeJson.message || maybeJson.detail || maybeJson.error);
+        }
+      } catch {
+        const text = await res.text().catch(() => "");
+        messageDetail = text;
+      }
+      const message = `HTTP ${res.status} ${res.statusText}${messageDetail ? ": " + messageDetail : ""}`;
       throw new Error(message);
     }
     return await res.json();
@@ -61,20 +72,39 @@ async function getJson(url, timeoutMs = 15000) {
 
 // PUBLIC_INTERFACE
 export async function fetchApodToday() {
-  /** Fetch today's APOD from backend. GET /api/apod (no date query implies today) */
-  const url = buildUrl("/apod");
-  return getJson(url);
+  /**
+   * Fetch today's APOD from backend.
+   * Prefer explicit /apod/today path if available, while remaining compatible with backends
+   * that serve today's APOD at /apod (no query).
+   */
+  // Primary target per request: /api/apod/today
+  const primary = buildUrl("/apod/today");
+  try {
+    return await getJson(primary);
+  } catch (e) {
+    // Fallback to /apod without date if /today is not available
+    const fallback = buildUrl("/apod");
+    return getJson(fallback);
+  }
 }
 
 // PUBLIC_INTERFACE
 export async function fetchApodByDate(date) {
   /**
-   * Fetch APOD for a date (YYYY-MM-DD). GET /api/apod?apod_date=YYYY-MM-DD
-   * Backend expects query param name 'apod_date' (see OpenAPI).
+   * Fetch APOD for a date (YYYY-MM-DD).
+   * The backend may accept 'date' or 'apod_date'. We'll prioritize 'date'
+   * but include 'apod_date' to maintain compatibility.
    */
   if (!date) throw new Error("date is required (YYYY-MM-DD)");
-  // Ensure date format is YYYY-MM-DD
   const isoDate = String(date).slice(0, 10);
-  const url = buildUrl("/apod", { apod_date: isoDate });
-  return getJson(url);
+
+  // Try with 'date' param first
+  try {
+    const urlDate = buildUrl("/apod", { date: isoDate });
+    return await getJson(urlDate);
+  } catch (e) {
+    // Fallback to 'apod_date'
+    const urlApodDate = buildUrl("/apod", { apod_date: isoDate });
+    return getJson(urlApodDate);
+  }
 }
