@@ -3,6 +3,10 @@
 Environment:
 - Create a `.env` file in this folder with:
   REACT_APP_BACKEND_URL=http://localhost:3001/api
+  # Note: Include the /api suffix. The frontend will call:
+  #   GET ${REACT_APP_BACKEND_URL}/apod           -> maps to backend /api/apod (today by default)
+  #   GET ${REACT_APP_BACKEND_URL}/apod?apod_date=YYYY-MM-DD
+  # Ensure CORS is enabled on the backend for http://localhost:3000
 
 Scripts:
 - npm start — starts dev server

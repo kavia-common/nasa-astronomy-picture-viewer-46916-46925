@@ -69,8 +69,11 @@ export function useApod(dateStr) {
         setData(norm);
       }
     } catch (e) {
+      // On any error, clear any stale data and surface a friendly message
       if (mounted.current) {
-        setError(e instanceof Error ? e : new Error("Unknown error"));
+        setData(null);
+        const err = e instanceof Error ? e : new Error("Unknown error");
+        setError(err);
       }
     } finally {
       if (mounted.current) {
